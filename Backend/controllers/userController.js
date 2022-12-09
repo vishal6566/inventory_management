@@ -192,11 +192,40 @@ res.status(200).json({
 })
   } else{
     res.status(404)
-    throw new Error ("User not fount")
+    throw new Error ("User not found")
   }
 
 })
 
+//change password function
+ const changePassword=asyncHandler(async(req,res)=>{
+  const user=await User.findById(req.user._id)
+
+  const {oldPassword,password}=req.body
+  if(!user){
+    res.status(404)
+    throw new Error ("User not found , please signup")
+  }
+
+  //validate
+  if(!oldPassword || !password){
+    res.status(404)
+    throw new Error ("Please add old and new password")
+  }
+  //check if old password matches password in db
+  const passwordIsCorrect=await bcrypt.compare(oldPassword,user.password)
+
+  //save new password
+  if(user && passwordIsCorrect){
+    user.password=password
+    await user.save()
+    res.status(200).send("Password changed sucessfully")
+  }else{
+    res.status(400)
+    throw new Error ("old password is incorrect")
+  }
+
+ })
 
 
-module.exports = { registerUser,loginUser,logout,getUser,loginStatus,updateUser }
+module.exports = { registerUser,loginUser,logout,getUser,loginStatus,updateUser,changePassword }
